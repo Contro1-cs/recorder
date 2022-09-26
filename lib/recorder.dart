@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_typing_uninitialized_variables, prefer_const_constructors
+// ignore_for_file: prefer_typing_uninitialized_variables, prefer_const_constructors, use_build_context_synchronously
 
 import 'dart:io';
 import 'package:audio_waveforms/audio_waveforms.dart';
@@ -28,10 +28,12 @@ class _RecorderState extends State<Recorder> {
   void initState() {
     super.initState();
     initRecorder();
+    recorderController = RecorderController();
   }
 
   @override
   void dispose() {
+    recorderController.dispose();
     recorder.closeRecorder();
     super.dispose();
   }
@@ -51,24 +53,29 @@ class _RecorderState extends State<Recorder> {
   }
 
   Future record() async {
-    await recorder.startRecorder(toFile: 'audio');
+    await recorder.startRecorder(toFile: 'recordApp');
+    await recorderController.record();
   }
 
   Future stop() async {
-    path = await recorder.stopRecorder();
-    audioFile = File(path!);
+    await recorderController.stop();
+    final path = await recorder.stopRecorder();
+    final audioFile = File(path!);
     ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text('Audio stored in $path')));
+        .showSnackBar(SnackBar(content: Text('Audio stored in $audioFile')));
   }
 
   @override
   Widget build(BuildContext context) {
+    var w = MediaQuery.of(context).size.width;
+    var h = MediaQuery.of(context).size.height;
     return Scaffold(
       body: Center(
           child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          //Record pause button
           GestureDetector(
               child: Container(
                 padding: const EdgeInsets.all(5),
@@ -113,6 +120,8 @@ class _RecorderState extends State<Recorder> {
           const SizedBox(
             height: 100,
           ),
+
+          //Timer
           StreamBuilder<RecordingDisposition>(
             stream: recorder.onProgress,
             builder: (context, snapshot) {
@@ -129,6 +138,18 @@ class _RecorderState extends State<Recorder> {
               );
             },
           ),
+          const SizedBox(
+            height: 50,
+          ),
+
+          Container(
+            margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
+            width: w,
+            child: AudioWaveforms(
+              size: Size(MediaQuery.of(context).size.width, 200.0),
+              recorderController: recorderController,
+            ),
+          )
         ],
       )),
     );

@@ -146,6 +146,14 @@ class _RecorderState extends State<Recorder> {
             margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
             width: w,
             child: AudioWaveforms(
+              waveStyle: WaveStyle(
+                waveColor: Colors.red,
+                showDurationLabel: true,
+                spacing: 10,
+                showBottom: true,
+                extendWaveform: true,
+                showMiddleLine: false,
+              ),
               size: Size(MediaQuery.of(context).size.width, 200.0),
               recorderController: recorderController,
             ),

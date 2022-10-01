@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class Recorder extends StatefulWidget {
@@ -52,6 +53,13 @@ class _RecorderState extends State<Recorder> {
     );
   }
 
+  Future<File> saveFilePermanantly(File file) async {
+    final appStorage = await getApplicationDocumentsDirectory();
+    final newFile = File('${appStorage.path}');
+
+    return File(file.path).copy(newFile.path);
+  }
+
   Future record() async {
     await recorder.startRecorder(toFile: 'recordApp');
     await recorderController.record();
@@ -65,6 +73,17 @@ class _RecorderState extends State<Recorder> {
         .showSnackBar(SnackBar(content: Text('Audio stored in $audioFile')));
   }
 
+  // Future stop() async {
+  //   await recorderController.stop();
+  //   path = await recorder.stopRecorder();
+  //   audioFile = File(path!);
+  //   final newFile = await saveFilePermanantly(audioFile);
+  //   ScaffoldMessenger.of(context)
+  //       .showSnackBar(SnackBar(content: Text('Audio stored in $newFile')));
+  //   ScaffoldMessenger.of(context)
+  //       .showSnackBar(SnackBar(content: Text('Audio stored in $audioFile')));
+  // }
+
   @override
   Widget build(BuildContext context) {
     var w = MediaQuery.of(context).size.width;
@@ -76,47 +95,73 @@ class _RecorderState extends State<Recorder> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           //Record pause button
-          GestureDetector(
-              child: Container(
-                padding: const EdgeInsets.all(5),
-                height: 100,
-                width: 100,
-                decoration: BoxDecoration(
-                    color: clr,
-                    borderRadius: BorderRadius.circular(50),
-                    border: Border.all(color: Colors.black)),
-                child: recIcon,
-              ),
-              onTap: () async {
-                // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Test 1'), backgroundColor: Colors.red, duration: Duration(milliseconds: 200),));
-                if (recorder.isRecording) {
-                  await stop();
-                  setState(() {
-                    recIcon = Icon(
-                      Icons.mic,
-                      size: 50,
-                      color: Colors.white,
-                    );
-                    clr = Colors.green;
-                  });
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              GestureDetector(
+                  child: Container(
+                    padding: const EdgeInsets.all(5),
+                    height: 100,
+                    width: 100,
+                    decoration: BoxDecoration(
+                        color: clr,
+                        borderRadius: BorderRadius.circular(50),
+                        border: Border.all(color: Colors.black)),
+                    child: recIcon,
+                  ),
+                  onTap: () async {
+                    // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Test 1'), backgroundColor: Colors.red, duration: Duration(milliseconds: 200),));
+                    if (recorder.isRecording) {
+                      await stop();
+                      setState(() {
+                        recIcon = Icon(
+                          Icons.mic,
+                          size: 50,
+                          color: Colors.white,
+                        );
+                        clr = Colors.green;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('Recording stopped'),
+                        backgroundColor: Colors.red,
+                        duration: Duration(milliseconds: 200),
+                      ));
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('Recording started'),
+                        backgroundColor: Colors.green,
+                        duration: Duration(milliseconds: 200),
+                      ));
+                      await record();
+                      setState(() {
+                        recIcon = Icon(Icons.stop, size: 50);
+                        clr = Colors.red;
+                      });
+                    }
+                  }),
+              GestureDetector(
+                child: Container(
+                  height: 90,
+                  width: 90,
+                  decoration: BoxDecoration(
+                      color: Colors.grey,
+                      borderRadius: BorderRadius.circular(100),
+                      border: Border.all(color: Colors.black)),
+                  child: Icon(
+                    Icons.play_arrow,
+                    color: Colors.white,
+                    size: 50,
+                  ),
+                ),
+                onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text('Recording stopped'),
-                    backgroundColor: Colors.red,
-                    duration: Duration(milliseconds: 200),
+                    content: Text('File not found'),
+                    duration: Duration(seconds: 1),
                   ));
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text('Recording started'),
-                    backgroundColor: Colors.green,
-                    duration: Duration(milliseconds: 200),
-                  ));
-                  await record();
-                  setState(() {
-                    recIcon = Icon(Icons.stop, size: 50);
-                    clr = Colors.red;
-                  });
-                }
-              }),
+                },
+              )
+            ],
+          ),
           const SizedBox(
             height: 100,
           ),

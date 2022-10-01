@@ -71,7 +71,7 @@ class _RecorderState extends State<Recorder> {
     final audioFile = File(path!);
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text('Audio stored in $audioFile')));
-  }
+  } 
 
   // Future stop() async {
   //   await recorderController.stop();
